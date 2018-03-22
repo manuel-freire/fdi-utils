@@ -20,20 +20,21 @@ Keep a series of useful scripts for [FdI UCM](https://informatica.ucm.es/) teach
 Why use all this markdown-centric workflow? Because many of the subjects and assignments at FdI UCM deal with writing code, and placing code into documents and slides is generally much harder (and looks uglier) than it should be. These scripts can generate beautiful, syntax-highlighted code from snippets:
 
 ``` {.md}
-   ~~~ {.java}
-    // en el controlador
+~~~ {.java}
+
     try {
-            simulador.run(nPasos);
-    } catch (SimulationException e) {
-            e.printMessage();
-            e.printStackTrace();
-    }
-   ~~~
+        assertTrue("Tests basicos pasan", mainBasico.test("src/test/resources/basic"));
+        assertTrue( "Tests avanzados pasan", mainBasico.test("src/test/resources/advanced"));
+        mainBasico.test("src/test/resources/err");
+        fail("no da error con una entrada mala");
+    } // ...
+
+~~~ 
 ```
 
 Output:
 
-![output](broken-link.png)
+![sample output](https://user-images.githubusercontent.com/2271676/37787542-81b3dc18-2dff-11e8-92ce-61a31b1bd2ea.png)
 
 ## normalize-cv-subs
 
