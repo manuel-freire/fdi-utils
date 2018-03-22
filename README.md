@@ -4,7 +4,36 @@ Scripts to improve QoL at FdI UCM
 
 ## Goal
 
-Keep a series of useful scripts for [FdI UCM](https://informatica.ucm.es/) teachers.
+Keep a series of useful scripts for [FdI UCM](https://informatica.ucm.es/) teachers. Currently oriented towards two workflows:
+
+* wrangling with Moodle submissions, generating feedback for students in markdown files, and generating pretty pdfs from those files to upload as feedback into Moodle:
+
+    1. [normalize-cv-subs](#normalize-cv-subs) handles uncompressing and, uh, normalizing the submissions; and can create a grading template for you.
+    2. [split-by-headers](#split-by-headers) can split the grading template into individual files, so that you can easily convert them to individual feedback pdfs, one per student
+    3. [markdown-to-pdf](#markdown-to-pdf) can generate those individual feedback pdfs for you
+
+* generating nice-looking pdfs and slides from markdown, for use as class notes and slides:
+
+    - [markdown-to-pdf](#markdown-to-pdf) generates nice class-notes style pdfs from markdown
+    - [markdown-to-beamer](#markdown-to-pdf) generates beamer slides (as pdfs) from markdown
+
+Why use all this markdown-centric workflow? Because many of the subjects and assignments at FdI UCM deal with writing code, and placing code into documents and slides is generally much harder (and looks uglier) than it should be. These scripts can generate beautiful, syntax-highlighted code from snippets:
+
+``` {.md}
+   ~~~ {.java}
+    // en el controlador
+    try {
+            simulador.run(nPasos);
+    } catch (SimulationException e) {
+            e.printMessage();
+            e.printStackTrace();
+    }
+   ~~~
+```
+
+Output:
+
+![output](broken-link.png)
 
 ## normalize-cv-subs
 
@@ -100,6 +129,48 @@ positional arguments:
 
 optional arguments:
   -h, --help  show this help message and exit
+~~~
+
+## markdown-to-pdf
+
+Python 2.7 script that generates a plain pdf document from a markdown input file. You can call `pandoc` directly instead of using it.
+
+#### Use
+
+as reported with the `-h` option:
+
+~~~
+usage: markdown-to-pdf [-h] input_file
+
+Make a call to pandoc to create a nice pdf file from markdown
+
+positional arguments:
+  input_file  A markdown file to convert to pdf
+
+optional arguments:
+  -h, --help  show this help message and exit
+~~~
+
+## markdown-to-beamer
+
+Python 2.7 script that generates a plain pdf document from a markdown input file. You can call `pandoc` directly instead of using it, and then call `pdflatex` on the result. However, this script simplifies these steps, and generally takes care of housekeeping for you (deleting unwanted auxiliary pdflatex files, supressing pdflatex output, ...).
+
+#### Use
+
+as reported with the `-h` option:
+
+~~~
+usage: markdown-to-beamer [-h] [--v] input_file
+
+Make a call to pandoc & pdflatex to create a nice beamer pdf file from
+markdown
+
+positional arguments:
+  input_file  A markdown file to convert to pdf
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --v         Show full pdflatex output; otherwise silence it
 ~~~
 
 
