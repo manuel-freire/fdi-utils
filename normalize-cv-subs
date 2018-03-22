@@ -1,0 +1,111 @@
+#!/usr/bin/python
+
+import os
+import re
+import argparse
+from tempfile import mkdtemp
+from shutil import copy, move, rmtree
+# identify files without relying on extendsion
+# requires python-magic; see https://github.com/ahupp/python-magic
+# ubuntu: pip install python-magic
+from magic import from_file   
+# extract archives; 
+# requires pyunpack & backends: see https://pypi.python.org/pypi/pyunpack
+# ubuntu: pip install pyunpack patool
+#         apt-get install unzip unrar p7zip-full
+from pyunpack import Archive  
+
+archive_mime_types = [
+    'application/zip',
+    'application/rar',
+    'application/x-rar',
+    'application/x-7z-compressed',
+    'application/x-gtar-compressed']
+
+moodle_task_regex = r'([^_]+)_[0-9]+_assign.*_(.*)(\.\w+)'
+
+def process(input_dir, output_dir, markdown_file, markdown_template):
+    """Process files in input_dir, saving them to output_dir.
+    
+    For each file in input_dir that matches the moodle_task_regex,
+        fix the name to make it all lower-case, and remove assignment id
+        if it is compressed, 
+                attempt to expand it into a folder at the output_dir
+            otherwise,
+                keep it as-is, and do not strip the extension
+        if markdown_file is not None,
+            append the filename to the markdown file
+            append the template contents, if any
+    """
+    for input_file in os.listdir(input_dir):        
+        m = re.match(moodle_task_regex, input_file)
+        full_input_file = input_dir + '/' + input_file
+        
+        if ( not m):
+            print full_input_file, ': IGNORED, does not look like a submission'
+            continue
+
+        # lookup magic to determine file type
+        mime = from_file(full_input_file, mime=True)
+        is_archive = ( mime in archive_mime_types or extension == '.ace' )
+        
+        # clean up name
+        clean_name = m.group(1) + '-' + m.group(2)
+        clean_name = re.sub(r' ', r'_', clean_name.decode('utf-8').lower())
+        extension = m.group(3).decode('utf-8').lower()
+        output_file = clean_name if is_archive else clean_name + extension
+        full_output_file = output_dir + '/' + output_file
+            
+        print 'processing ', full_input_file\
+            ,'\n\t', 'of type: ' , mime\
+            ,'\n\t', 'into: ' , full_output_file
+        if is_archive:
+            # need temp to avoid issues with unicode full_output_file paths
+            temp = mkdtemp()
+            Archive(full_input_file).extractall(temp, True)
+            move(temp, full_output_file)
+        else:
+            copy(full_input_file, full_output_file)
+        
+        if markdown_file is not None:
+            with open(output_dir + '/' + markdown_file, "a+") as md_file:
+                md_file.write('# ' + clean_name.encode('utf-8') + '\n')
+                md_file.write(markdown_template)
+    
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=\
+        "Normalize names of Moodle submissions and, if possible,\
+         uncompress them into folders")
+    parser.add_argument("source", 
+            help="Either a zip-file OR a directory with compressed files from Moodle")
+    parser.add_argument("output_dir", 
+            help="Output directory, for normalized, extracted submissions")
+    parser.add_argument("--md",
+            help="Name of markdown file to add to output, \
+                 with a top-level #<name_of_submission> line per submission")
+    parser.add_argument("--template",
+            help="If --md specified, file with markdown snippet \
+                 to append after each submission-line")
+    args = parser.parse_args()
+    
+    # if specified, get the template
+    markdown_template = ''
+    if args.md is not None \
+        and os.path.isfile(args.template):
+            with open(args.template, 'r') as f:
+                markdown_template = f.read()
+    
+    # decide if input is from a zip-file or a folder
+    input_dir = args.source
+    if not os.path.isdir(args.source):
+        tmp_dir = mkdtemp()
+        Archive(args.source).extractall(tmp_dir)
+        input_dir = tmp_dir
+        print "uncompressed to temporary: ", tmp_dir, "; will remove when finished"
+    
+    # process input
+    process(input_dir, args.output_dir, args.md, markdown_template)
+    
+    # if needed, cleanup
+    if args.source != input_dir:
+        rmtree(input_dir) # remove temporary extraction dir
