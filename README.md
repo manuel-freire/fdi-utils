@@ -82,4 +82,24 @@ Only written if `--md` specified (eg.: `--md grading.md`).
 
 ~~~
 
+## split-by-headers
+
+Python 2.7 script that splits a Markdown file by top-level headers (`# header text`), creating one file per such header, with all contents until either the next header or the end of the file. This is useful when splitting a grading output file such as the ones created by `normalize_cv_subs`
+
+#### Use
+
+as reported with the `-h` option:
+
+~~~
+usage: split-by-headers [-h] input_file
+
+Split a markdown file into subfiles, one per top-level header
+
+positional arguments:
+  input_file  A markdown file to split
+
+optional arguments:
+  -h, --help  show this help message and exit
+~~~
+
 
