@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+import re
+import argparse
+import codecs
+
+markdown_h1_regex = r'# (.*)'
+
+def split(f):
+    """Split input file by specified markdown_h1_regex
+       Create one file per match, named as the header,
+       with the corresponding contents
+    """
+    d = dict()
+    current = None
+    for line in codecs.open(f, encoding='utf-8', mode='r'):
+        m = re.match(markdown_h1_regex, line)
+        if (m):
+            if current is not None:
+                with codecs.open(current + ".md", encoding='utf-8', mode='w') as out: 
+                    for e in d[current]:
+                        out.write(e)
+                print "Wrote ", current
+            current = m.group(1)
+            d[current] = [line]
+        elif current is not None:
+            d[current].append(line)
+        else:
+            print "Ignoring line ", line
+    if current is not None:
+        with codecs.open(current + ".md", encoding='utf-8', mode='w') as out:
+            for e in d[current]:
+                out.write(e)
+    else:
+        print "No matches for pattern!!"
+    
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=\
+        "Split a markdown file into subfiles, one per top-level header")
+    parser.add_argument("input_file", 
+            help="A markdown file to split")
+    args = parser.parse_args()
+    
+    # split input
+    split(args.input_file)
