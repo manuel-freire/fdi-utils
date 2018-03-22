@@ -16,13 +16,13 @@ would be extracted into a folder named
 
 `alfredo_javier_blázquez_lópez-entrega-práctica-1/`
 
-### Requirements
+#### Requirements
 
-python-maginc, pyunpack, patool, unzip, unrar, p7zip-full
+python-magic, pyunpack, patool, unzip, unrar, p7zip-full
 
-### Usage
+#### Usage
 
-(output of ./normalize-cv-subs -h)
+(output of `./normalize-cv-subs -h`)
 
 ~~~
 usage: normalize-cv-subs [-h] [--md MD] [--template TEMPLATE]
@@ -44,7 +44,7 @@ optional arguments:
                        after each submission-line
 ~~~
 
-### Example template file
+#### Example template file
 
 ~~~ {.md}
 
@@ -60,7 +60,18 @@ optional arguments:
 
 ~~~
 
-### Example output
+#### Example output folder
+
+~~~
+alfredo_javier_blázquez_lópez-entrega-práctica-1/
+héctor_gómez_ejémplez-p1/
+~~~
+
+with an extra markdown file thrown in, but only if `--md` specified  (eg.: `--md grading.md`).
+
+#### Example grading output file
+
+Only written if `--md` specified (eg.: `--md grading.md`).
 
 ~~~ {.md}
 # alfredo_javier_blázquez_lópez-entrega-práctica-1
@@ -70,6 +81,5 @@ optional arguments:
 <template content goes here>
 
 ~~~
-
 
 
