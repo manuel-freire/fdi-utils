@@ -1,0 +1,40 @@
+#!/usr/bin/python
+
+from subprocess import call
+from re import sub
+from string import replace
+import sys
+import argparse
+
+pandoc_opts = [
+    '-t', 'latex',
+    '-V', 'fontsize=10pt', 
+    '-V', 'colorlinks',
+    '--template', 'eisvogel.tex',
+    '--listings'
+]
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=\
+        "Make a call to pandoc to create a nice pdf file from markdown")
+    parser.add_argument("input_file", 
+            help="A markdown file to convert to pdf")
+    args = parser.parse_args()
+    
+    # process input
+    output_file = replace(args.input_file, '.md', '.pdf') 
+    call_string = ['pandoc'] \
+        + pandoc_opts \
+        + ['-s', args.input_file ] \
+        + ['-o', output_file ]
+    print 'calling pandoc:\n\t', call_string
+    try:
+        retcode = call(call_string, stderr=sys.stderr, stdout=sys.stdout)
+        if retcode == 0:
+            print >>sys.stderr, "Pandoc is happy - output at ", output_file
+        elif retcode < 0:
+            print >>sys.stderr, "Pandoc was terminated by signal", -retcode
+        else:
+            print >>sys.stderr, "Pandoc returned", retcode
+    except OSError as e:
+        print >>sys.stderr, "Execution failed:", e

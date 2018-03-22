@@ -1,0 +1,65 @@
+#!/usr/bin/python
+
+from subprocess import call
+from re import sub
+from string import replace
+import sys
+import argparse
+from tempfile import mkdtemp
+from shutil import rmtree, move
+from glob import glob
+
+pandoc_opts = [
+    '-t', 'beamer',
+    '-V', 'fontsize=9pt', 
+    '-V', 'colorlinks',
+    '--template', 'beamer.template'
+]
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=\
+        "Make a call to pandoc & pdflatex to create a nice beamer pdf file from markdown")
+    parser.add_argument("input_file", 
+            help="A markdown file to convert to pdf")
+    parser.add_argument("--v", action="store_true",
+            help="Show full pdflatex output; otherwise silence it")
+    args = parser.parse_args()
+    
+    # process input
+    pandoc_output_file = replace(args.input_file, '.md', '.tex') 
+    call_string = ['pandoc'] \
+        + pandoc_opts \
+        + ['-s', args.input_file ] \
+        + ['-o', pandoc_output_file  ]
+    print 'calling pandoc:\n\t', call_string
+    try:
+        retcode = call(call_string, stderr=sys.stderr, stdout=sys.stdout)
+        if retcode < 0:
+            print >>sys.stderr \
+                , "pandoc was terminated by signal", -retcode, "aborting"
+            exit(-1)
+    except OSError as e:
+        print >>sys.stderr, "Execution failed:", e, "aborting"
+        exit(-1)
+    
+    aux_dir = mkdtemp()
+    pdf_output_file = replace(args.input_file, '.md', '.pdf') 
+    call_string = ['pdflatex'];
+    if not args.v:
+        call_string = call_string + ['-interaction=batchmode']
+    call_string = call_string\
+        + ['-output-directory', aux_dir] \
+        + [pandoc_output_file]
+    print 'calling pdflatex:\n\t', call_string
+    try:                
+        retcode = call(call_string, stderr=sys.stderr, stdout=sys.stdout)
+        if retcode < 0:
+            print >>sys.stderr \
+                , "pdflatex was terminated by signal", -retcode, "aborting"
+            exit(-1)
+    except OSError as e:
+        print >>sys.stderr, "Execution failed:", e, "aborting"
+        exit(-1)
+    move(glob(aux_dir + '/' + '*.pdf')[0], pdf_output_file)
+    print >>sys.stderr, "pdflatex is happy - output at ", pdf_output_file
+    rmtree(aux_dir) 
