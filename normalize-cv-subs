@@ -90,10 +90,14 @@ if __name__ == '__main__':
     
     # if specified, get the template
     markdown_template = ''
-    if args.md is not None \
-        and os.path.isfile(args.template):
+    if args.md is not None and args.template is not None:
+        if os.path.isfile(args.template):
             with open(args.template, 'r') as f:
                 markdown_template = f.read()
+        else: 
+            print "ERROR - expected a template file, ignoring not-a-file arg '" \
+              + args.template + "'"
+              
     
     # decide if input is from a zip-file or a folder
     input_dir = args.source
