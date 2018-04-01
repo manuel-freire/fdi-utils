@@ -50,6 +50,10 @@ would be extracted into a folder named
 
 python-magic, pyunpack, patool, unzip, unrar, p7zip-full
 
+You can install these in a typical Ubuntu / Debian install running:
+`sudo apt-get unrar p7zip-full`
+`sudo pip install python-magic pyunpack patool`
+
 #### Usage
 
 (output of `./normalize-cv-subs -h`)
