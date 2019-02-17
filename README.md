@@ -36,6 +36,8 @@ Output:
 
 ![sample output](https://user-images.githubusercontent.com/2271676/37787542-81b3dc18-2dff-11e8-92ce-61a31b1bd2ea.png)
 
+(note wrapped long lines; this is *very* useful when displaying code copied from somewhere without either clipping or tedious manual reformatting).
+
 ## normalize-cv-subs
 
 Python 2.7 script that normalizes Moodle (Campus Virtual) submission names, uncompresses them where you choose, and optionally creates a grading template in Markdown to provide feedback to the students. For example, a submission named
@@ -49,6 +51,13 @@ would be extracted into a folder named
 #### Requirements
 
 python-magic, pyunpack, patool, unzip, unrar, p7zip-full
+
+You can install these in a typical Ubuntu / Debian system running:
+
+~~~ {.sh}
+sudo apt-get unrar p7zip-full
+sudo pip install python-magic pyunpack patool
+~~~
 
 #### Usage
 
@@ -136,6 +145,10 @@ optional arguments:
 
 Python 2.7 script that generates a plain pdf document from a markdown input file. You can call `pandoc` directly instead of using it.
 
+#### Requirements
+
+You will need both `pandoc` and a `latex` back-end for this to work. You can instal the latest [pandoc](https://github.com/jgm/pandoc/releases) from its releases page, and I personally use [texlive](https://www.tug.org/texlive/) as a latex back-end. Both have packages for major linux distributions, and windows installers for the linux-unenlightened.
+
 #### Use
 
 as reported with the `-h` option:
@@ -155,6 +168,10 @@ optional arguments:
 ## markdown-to-beamer
 
 Python 2.7 script that generates a plain pdf document from a markdown input file. You can call `pandoc` directly instead of using it, and then call `pdflatex` on the result. However, this script simplifies these steps, and generally takes care of housekeeping for you (deleting unwanted auxiliary pdflatex files, supressing pdflatex output, ...).
+
+#### Requirements
+
+You will need both `pandoc` and a `latex` back-end for this to work. You can instal the latest [pandoc](https://github.com/jgm/pandoc/releases) from its releases page, and I personally use [texlive](https://www.tug.org/texlive/) as a latex back-end. Both have packages for major linux distributions, and windows installers for the linux-unenlightened.
 
 #### Use
 
