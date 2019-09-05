@@ -23,6 +23,8 @@ if __name__ == '__main__':
             help="A markdown file to convert to pdf")
     parser.add_argument("--v", action="store_true",
             help="Show full pdflatex output; otherwise silence it")
+    parser.add_argument("-o", "--output_file", 
+            help="Output file to use. If not specified, uses input with .md extension replaced by .pdf")    
     args = parser.parse_args()
     
     # process input
@@ -43,7 +45,12 @@ if __name__ == '__main__':
         exit(-1)
     
     aux_dir = mkdtemp()
-    pdf_output_file = replace(args.input_file, '.md', '.pdf') 
+    if args.output_file is None:
+      pdf_output_file = replace(args.input_file, '.md', '.pdf') 
+    else:
+      pdf_output_file = args.output_file
+    print "Output will be at ", pdf_output_file
+    
     call_string = ['pdflatex'];
     if not args.v:
         call_string = call_string + ['-interaction=batchmode']
@@ -60,6 +67,7 @@ if __name__ == '__main__':
     except OSError as e:
         print >>sys.stderr, "Execution failed:", e, "aborting"
         exit(-1)
+    move(pandoc_output_file, aux_dir);
     move(glob(aux_dir + '/' + '*.pdf')[0], pdf_output_file)
     print >>sys.stderr, "pdflatex is happy - output at ", pdf_output_file
     rmtree(aux_dir) 
