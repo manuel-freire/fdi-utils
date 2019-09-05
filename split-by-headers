@@ -31,6 +31,7 @@ def split(f):
         with codecs.open(current + ".md", encoding='utf-8', mode='w') as out:
             for e in d[current]:
                 out.write(e)
+                print "Wrote ", current, " (last file)"
     else:
         print "No matches for pattern!!"
     
