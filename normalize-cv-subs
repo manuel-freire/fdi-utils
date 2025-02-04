@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import re
@@ -23,6 +23,8 @@ archive_mime_types = [
     'application/x-gtar-compressed']
 
 moodle_task_regex = r'([^_]+)_[0-9]+_assign.*_(.*)(\.\w+)'
+# 'VICTORIA GNATIUK ROMANIUK_2144394_assignsubmission_file_'
+moodle_task_regex2 = r'([^_]+)_[0-9]+_assign.*_(.*)'
 
 def process(input_dir, output_dir, markdown_file, markdown_template):
     """Process files in input_dir, saving them to output_dir.
@@ -40,29 +42,47 @@ def process(input_dir, output_dir, markdown_file, markdown_template):
     for input_file in os.listdir(input_dir):        
         m = re.match(moodle_task_regex, input_file)
         full_input_file = input_dir + '/' + input_file
+        m2 = re.match(moodle_task_regex2, input_file)
         
-        if ( not m):
-            print full_input_file, ': IGNORED, does not look like a submission'
+        if not m and not m2:
+            print(full_input_file, ': IGNORED, does not look like a submission')
             continue
 
+        if m2:
+            if os.path.isfile(full_input_file):
+                m = re.match("([^.]+)(\.)(.*)", full_input_file)
+                clean_name = m2.group(1)
+                print(full_input_file, ': Is file, clean would be ', clean_name)
+                extension = m.group(3).lower()
+                full_input_subfile = full_input_file
+            else:
+                subfile = os.listdir(full_input_file)[0]
+                full_input_subfile = full_input_file + '/' + subfile
+                print(full_input_file, ': Is folder; working on ', subfile)
+                m = re.match("([^.]+)(\.)(.*)", subfile)
+                clean_name = m2.group(1) + '-' + m.group(1)                
+                extension = m.group(3).lower()
+        else:
+            full_input_subfile = full_input_file
+            clean_name = m.group(1) + '-' + m.group(2)
+            extension = m.group(3).lower()
+
         # lookup magic to determine file type
-        mime = from_file(full_input_file, mime=True)
+        mime = from_file(full_input_subfile, mime=True)
         is_archive = ( mime in archive_mime_types or extension == '.ace' )
         
         # clean up name
-        clean_name = m.group(1) + '-' + m.group(2)
-        clean_name = re.sub(r' ', r'_', clean_name.decode('utf-8').lower())
-        extension = m.group(3).decode('utf-8').lower()
-        output_file = clean_name if is_archive else clean_name + extension
+        clean_name = re.sub(r' ', r'_', clean_name.lower())
+        output_file = clean_name if is_archive else clean_name + "." + extension
         full_output_file = output_dir + '/' + output_file
             
-        print 'processing ', full_input_file\
+        print('processing ', full_input_subfile\
             ,'\n\t', 'of type: ' , mime\
-            ,'\n\t', 'into: ' , full_output_file
+            ,'\n\t', 'into: ' , full_output_file)
         if is_archive:
             # need temp to avoid issues with unicode full_output_file paths
             temp = mkdtemp()
-            Archive(full_input_file).extractall(temp, True)
+            Archive(full_input_subfile).extractall(temp, True)
             move(temp, full_output_file)
         else:
             copy(full_input_file, full_output_file)
@@ -95,8 +115,8 @@ if __name__ == '__main__':
             with open(args.template, 'r') as f:
                 markdown_template = f.read()
         else: 
-            print "ERROR - expected a template file, ignoring not-a-file arg '" \
-              + args.template + "'"
+            print("ERROR - expected a template file, ignoring not-a-file arg '" \
+              + args.template + "'")
               
     
     # decide if input is from a zip-file or a folder
@@ -105,7 +125,7 @@ if __name__ == '__main__':
         tmp_dir = mkdtemp()
         Archive(args.source).extractall(tmp_dir)
         input_dir = tmp_dir
-        print "uncompressed to temporary: ", tmp_dir, "; will remove when finished"
+        print("uncompressed to temporary: ", tmp_dir, "; will remove when finished")
     
     # process input
     process(input_dir, args.output_dir, args.md, markdown_template)

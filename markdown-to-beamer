@@ -1,8 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from subprocess import call
+from subprocess import run
 from re import sub
-from string import replace
 import sys
 import argparse
 from tempfile import mkdtemp
@@ -28,46 +27,47 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # process input
-    pandoc_output_file = replace(args.input_file, '.md', '.tex') 
+    pandoc_output_file = args.input_file.replace('.md', '.tex')
     call_string = ['pandoc'] \
         + pandoc_opts \
         + ['-s', args.input_file ] \
         + ['-o', pandoc_output_file  ]
-    print 'calling pandoc:\n\t', call_string
+    print('calling pandoc:\n\t', call_string)
     try:
-        retcode = call(call_string, stderr=sys.stderr, stdout=sys.stdout)
-        if retcode < 0:
-            print >>sys.stderr \
-                , "pandoc was terminated by signal", -retcode, "aborting"
-            exit(-1)
+        result = run(call_string, capture_output=True, encoding='UTF-8')
+        print(f"pandoc returned {result.returncode}\nErr: {result.stderr}\nOut: {result.stdout}", file=sys.stderr);
     except OSError as e:
-        print >>sys.stderr, "Execution failed:", e, "aborting"
+        print(f"errored out with {e}; Result: {result.returncode}\nErr: {result.stderr}\nOut: {result.stdout}", file=sys.stderr);
         exit(-1)
     
     aux_dir = mkdtemp()
     if args.output_file is None:
-      pdf_output_file = replace(args.input_file, '.md', '.pdf') 
+        pdf_output_file = args.input_file.replace('.md', '.pdf')
     else:
-      pdf_output_file = args.output_file
-    print "Output will be at ", pdf_output_file
+        pdf_output_file = args.output_file
+    print("Output will be at ", pdf_output_file)
     
-    call_string = ['pdflatex'];
+    call_string = ['pdflatex']
     if not args.v:
         call_string = call_string + ['-interaction=batchmode']
     call_string = call_string\
         + ['-output-directory', aux_dir] \
+        + ['-halt-on-error'] \
         + [pandoc_output_file]
-    print 'calling pdflatex:\n\t', call_string
-    try:                
-        retcode = call(call_string, stderr=sys.stderr, stdout=sys.stdout)
-        if retcode < 0:
-            print >>sys.stderr \
-                , "pdflatex was terminated by signal", -retcode, "aborting"
-            exit(-1)
+    print('calling pdflatex:\n\t', call_string)
+    try:
+        result = run(call_string, capture_output=True, encoding='UTF-8')
+        if (result.returncode == 1):
+          print(f"pdflatex returned {result.returncode}\nErr: {result.stderr}\nOut: {result.stdout}", file=sys.stderr);
+          print(f"RE-RUNNING")
+          result = run(call_string, capture_output=True, encoding='UTF-8')
+        if (result.returncode == 0):
+          move(glob(f"{aux_dir}/*.pdf")[0], pdf_output_file)
+          rmtree(aux_dir)
+          print(f"ok, output in {pdf_output_file}")
+        else:
+          print(f"pdflatex returned {result.returncode}\nErr: {result.stderr}\nOut: {result.stdout}", file=sys.stderr);
+        
     except OSError as e:
-        print >>sys.stderr, "Execution failed:", e, "aborting"
+        print(f"errored out with {e}; Result: {result.returncode}\nErr: {result.stderr}\nOut: {result.stdout}", file=sys.stderr);
         exit(-1)
-    move(pandoc_output_file, aux_dir);
-    move(glob(aux_dir + '/' + '*.pdf')[0], pdf_output_file)
-    print >>sys.stderr, "pdflatex is happy - output at ", pdf_output_file
-    rmtree(aux_dir) 
